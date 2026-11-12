@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<script src="config.js"></script>
+<title>Консультант Expert Кухни</title>
+<style>
+  :root {
+    --ek-bg: #f3f1ee;
+    --ek-card: #ffffff;
+    --ek-ink: #22252a;
+    --ek-muted: #6f6a64;
+    --ek-line: #e6e1da;
+    --ek-head: #23262b;
+    --ek-accent: #8a5f36;
+    --ek-accent-ink: #ffffff;
+    --ek-bot: #f4f1ec;
+    --ek-user: #23262b;
+    --ek-user-ink: #ffffff;
+    --ek-ok: #2f7a4b;
+    --ek-warn: #a65b1d;
+    --ek-radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--ek-bg);
+    color: var(--ek-ink);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-font-smoothing: antialiased;
+  }
+  .ek-chat {
+    width: 400px; height: min(720px, calc(100dvh - 48px));
+    background: var(--ek-card);
+    border-radius: var(--ek-radius);
+    box-shadow: 0 24px 60px -20px rgba(35, 38, 43, .35), 0 2px 8px rgba(35, 38, 43, .08);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  @media (max-width: 520px) {
+    body { align-items: stretch; }
+    .ek-chat { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+  }
+  .ek-head {
+    background: var(--ek-head); color: #fff;
+    padding: 14px 14px 14px 16px; display: flex; align-items: center; gap: 12px;
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+  .ek-avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex: none;
+    background: var(--ek-accent); color: #fff; display: grid; place-items: center;
+    font-weight: 700; font-size: 14px; letter-spacing: .02em; position: relative;
+  }
+  .ek-avatar::after {
+    content: ""; position: absolute; right: 0; bottom: 1px; width: 10px; height: 10px;
+    border-radius: 50%; background: #4cc77a; border: 2px solid var(--ek-head);
+  }
+  .ek-title { flex: 1; min-width: 0; }
+  .ek-chat [hidden] { display: none !important; }
+  .ek-title b { display: block; font-size: 15px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 400px) { .ek-new span { display: none; } .ek-new { padding: 8px; } }
+  .ek-new { display: inline-flex; align-items: center; gap: 6px; }
+  .ek-title span { display: block; font-size: 12.5px; color: #bdb7ae; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ek-new {
+    flex: none; background: rgba(255,255,255,.1); color: #fff; border: 0; border-radius: 10px;
+    padding: 8px 10px; font: inherit; font-size: 12.5px; cursor: pointer;
+  }
+  .ek-new:hover { background: rgba(255,255,255,.18); }
+  .ek-test {
+    display: flex; gap: 8px; align-items: center; padding: 8px 12px;
+    background: #fbf6ec; border-bottom: 1px solid var(--ek-line); font-size: 12.5px; color: var(--ek-muted);
+  }
+  .ek-test select { flex: 1; min-width: 0; font: inherit; font-size: 12.5px; padding: 5px 6px; border: 1px solid var(--ek-line); border-radius: 8px; background: #fff; color: var(--ek-ink); }
+  .ek-log { flex: 1; overflow-y: auto; padding: 16px 14px 8px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+  .ek-msg { max-width: 86%; display: flex; flex-direction: column; gap: 4px; }
+  .ek-msg.bot { align-self: flex-start; }
+  .ek-msg.user { align-self: flex-end; align-items: flex-end; }
+  .ek-bubble {
+    padding: 10px 13px; border-radius: 16px; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .bot .ek-bubble { background: var(--ek-bot); border-bottom-left-radius: 6px; }
+  .user .ek-bubble { background: var(--ek-user); color: var(--ek-user-ink); border-bottom-right-radius: 6px; }
+  .ek-bubble a { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--ek-accent); }
+  .ek-bubble a[href^="tel:"] { white-space: nowrap; }
+  .ek-meta { font-size: 12px; color: var(--ek-muted); padding: 0 4px; }
+  .ek-badge { align-self: flex-start; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: #e5f3ea; color: var(--ek-ok); }
+  .ek-badge.warn { background: #fbeee2; color: var(--ek-warn); }
+  .ek-typing { display: inline-flex; align-items: center; gap: 8px; color: var(--ek-muted); font-size: 13px; }
+  .ek-dots { display: inline-flex; gap: 3px; }
+  .ek-dots i { width: 6px; height: 6px; border-radius: 50%; background: #b9b2a8; animation: ek-blink 1.2s infinite ease-in-out; }
+  .ek-dots i:nth-child(2) { animation-delay: .15s; }
+  .ek-dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes ek-blink { 0%, 80%, 100% { opacity: .3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+  @media (prefers-reduced-motion: reduce) { .ek-dots i { animation: none; opacity: .7; } }
+  .ek-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 14px 10px; }
+  .ek-chip {
+    border: 1px solid var(--ek-line); background: #fff; color: var(--ek-ink);
+    border-radius: 999px; padding: 8px 12px; font: inherit; font-size: 13.5px; cursor: pointer;
+  }
+  .ek-chip:hover { border-color: var(--ek-accent); }
+  .ek-actions { display: flex; justify-content: flex-end; padding: 0 12px 8px; }
+  .ek-callback {
+    display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--ek-line); background: #fff;
+    color: var(--ek-ink); border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .ek-callback:hover { border-color: var(--ek-accent); }
+  .ek-lead { margin: 0 12px 10px; padding: 12px; border: 1px solid var(--ek-line); border-radius: 14px; background: #fbf9f6; display: grid; gap: 8px; }
+  .ek-lead-head { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; }
+  .ek-lead-close { border: 0; background: none; font: inherit; font-size: 20px; line-height: 1; color: var(--ek-muted); cursor: pointer; padding: 2px 6px; }
+  .ek-lead input {
+    font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--ek-line); border-radius: 10px; background: #fff; color: var(--ek-ink); outline: none;
+  }
+  .ek-lead input:focus { border-color: var(--ek-accent); }
+  .ek-lead-submit { border: 0; border-radius: 10px; padding: 11px 12px; font: inherit; font-weight: 600; background: var(--ek-accent); color: var(--ek-accent-ink); cursor: pointer; }
+  .ek-lead-submit:disabled { opacity: .5; cursor: default; }
+  .ek-lead-error { font-size: 12.5px; color: var(--ek-warn); min-height: 0; }
+  .ek-form { display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px 6px; border-top: 1px solid var(--ek-line); }
+  .ek-input {
+    flex: 1; resize: none; max-height: 120px; min-height: 44px; overflow-y: hidden;
+    font: inherit; font-size: 16px; line-height: 1.35; color: var(--ek-ink);
+    border: 1px solid var(--ek-line); border-radius: 14px; padding: 11px 13px; outline: none; background: #fff;
+  }
+  .ek-input:focus { border-color: var(--ek-accent); }
+  .ek-send {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer;
+    background: var(--ek-accent); color: var(--ek-accent-ink); display: grid; place-items: center;
+  }
+  .ek-send:disabled { opacity: .45; cursor: default; }
+  .ek-count { font-size: 12px; color: var(--ek-muted); text-align: right; padding: 0 16px; min-height: 0; }
+  .ek-consent { margin: 0; padding: 2px 16px 10px; font-size: 12px; color: var(--ek-muted); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .ek-consent a { color: inherit; }
+  .ek-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<div class="ek-chat" id="ek-chat" aria-label="Чат с консультантом Expert Кухни">
+  <div class="ek-head">
+    <div class="ek-avatar" aria-hidden="true">EK</div>
+    <div class="ek-title"><b>Консультант Expert Кухни</b><span>Шоурум в ТК «СДМ» · ежедневно 9:30–18:00</span></div>
+    <button class="ek-new" type="button" data-ek="new" aria-label="Новый диалог" title="Новый диалог"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Новый диалог</span></button>
+  </div>
+  <div class="ek-test" data-ek="test" hidden>
+    <label for="ek-model">Модель</label>
+    <select id="ek-model" data-ek="model"></select>
+  </div>
+  <div class="ek-log" data-ek="log" role="log" aria-live="polite"></div>
+  <div class="ek-chips" data-ek="chips"></div>
+  <div class="ek-actions" data-ek="actions">
+    <button class="ek-callback" type="button" data-ek="callback">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Перезвоните мне
+    </button>
+  </div>
+  <form class="ek-lead" data-ek="leadform" hidden novalidate>
+    <div class="ek-lead-head"><span>Менеджер перезвонит</span><button class="ek-lead-close" type="button" data-ek="leadclose" aria-label="Закрыть">×</button></div>
+    <label class="ek-sr" for="ek-lead-name">Имя</label>
+    <input id="ek-lead-name" data-ek="leadname" type="text" maxlength="60" placeholder="Как к Вам обращаться" autocomplete="given-name">
+    <label class="ek-sr" for="ek-lead-phone">Телефон</label>
+    <input id="ek-lead-phone" data-ek="leadphone" type="tel" inputmode="tel" placeholder="+7 (___) ___-__-__" autocomplete="tel">
+    <div class="ek-lead-error" data-ek="leaderror" role="alert"></div>
+    <button class="ek-lead-submit" type="submit" data-ek="leadsubmit">Жду звонка</button>
+  </form>
+  <form class="ek-form" data-ek="form">
+    <label class="ek-sr" for="ek-input">Сообщение</label>
+    <textarea id="ek-input" class="ek-input" data-ek="input" rows="1" maxlength="1000" placeholder="Напишите вопрос…" autocomplete="off"></textarea>
+    <button class="ek-send" type="submit" data-ek="send" aria-label="Отправить">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5L4 12z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    </button>
+  </form>
+  <div class="ek-count" data-ek="count"></div>
+  <p class="ek-consent">Отправляя сообщение, вы соглашаетесь с <a data-ek="privacy" href="#" target="_blank" rel="noopener noreferrer">политикой обработки персональных данных</a></p>
+</div>
+
+<script>
+/*
+ * Чат-клиент. Всё в одной функции mount(root, options), чтобы потом
+ * без переделки обернуть в плавающий виджет (кнопка в углу + это окно).
+ * Текст модели выводится только через textContent; ссылки и телефоны —
+ * через createElement с проверкой адреса.
+ */
+(function () {
+  'use strict';
+
+  var GREETING = 'Доброго времени суток! Я консультант Expert Кухни. Подскажу по ценам, материалам и срокам, запишу на бесплатный расчёт и 3D-проект в шоуруме. Чем могу помочь?';
+  var SUGGESTIONS = ['Сколько стоит кухня?', 'Есть рассрочка?', 'Как записаться на расчёт?', 'Где шоурум?'];
+  var OFFLINE = 'Не получается связаться с сервером. Пожалуйста, позвоните или напишите менеджерам: Мария — +7 905 830-57-20, Елена — +7 952 507-13-23 (звонок, MAX, WhatsApp).';
+  var STORE_SID = 'ek_chat_session';
+  var STORE_MODEL = 'ek_chat_model';
+
+  var storage = {
+    get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* приватный режим */ } },
+    del: function (k) { try { window.localStorage.removeItem(k); } catch (e) { /* приватный режим */ } }
+  };
+
+  // Ссылки, vk.me и телефоны → безопасные <a>; остальное — текстовые узлы.
+  var LINK_RE = /(https?:\/\/[^\s<>"«»]+|vk\.me\/[A-Za-z0-9_.]+|(?:\+7|8)[\s \-(]*\d{3}[\s \-)]*\d{3}[\s \-]*\d{2}[\s \-]*\d{2})/g;
+  function renderRich(el, text) {
+    el.textContent = '';
+    var last = 0, m;
+    LINK_RE.lastIndex = 0;
+    while ((m = LINK_RE.exec(text))) {
+      var token = m[0];
+      var trail = '';
+      if (/^https?:|^vk\.me/.test(token)) {
+        var t = token.match(/[.,;:!?)»]+$/);
+        if (t) { trail = t[0]; token = token.slice(0, -trail.length); }
+      }
+      if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var a = document.createElement('a');
+      var href = null;
+      if (/^https?:\/\//.test(token)) {
+        try { var u = new URL(token); if (u.protocol === 'https:' || u.protocol === 'http:') href = u.href; } catch (e) { href = null; }
+      } else if (/^vk\.me\//.test(token)) {
+        href = 'https://' + token;
+      } else {
+        var digits = token.replace(/\D/g, '');
+        if (digits.length === 11) href = 'tel:+7' + digits.slice(1);
+      }
+      if (href) {
+        a.href = href;
+        if (href.indexOf('tel:') !== 0) { a.target = '_blank'; a.rel = 'noopener noreferrer nofollow'; }
+        a.textContent = token;
+        el.appendChild(a);
+      } else {
+        el.appendChild(document.createTextNode(token));
+      }
+      if (trail) el.appendChild(document.createTextNode(trail));
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+  }
+
+  function apiBaseFromUrl() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('api');
+      if (!p) return '';
+      var u = new URL(p);
+      if (u.protocol !== 'https:' && u.hostname !== 'localhost' && u.hostname !== '127.0.0.1') return '';
+      return u.origin + u.pathname.replace(/\/+$/, '');
+    } catch (e) { return ''; }
+  }
+
+  function mount(root, options) {
+    var api = (options && options.apiBase) || '';
+    var $ = function (n) { return root.querySelector('[data-ek="' + n + '"]'); };
+    var logEl = $('log'), chips = $('chips'), form = $('form'), input = $('input'), sendBtn = $('send');
+    var modelSel = $('model'), testBar = $('test'), count = $('count');
+    var state = { sessionId: storage.get(STORE_SID) || '', busy: false, testMode: false, maxChars: 1000 };
+
+    function scrollDown() { logEl.scrollTop = logEl.scrollHeight; }
+
+    function addMessage(role, text, meta) {
+      var wrap = document.createElement('div');
+      wrap.className = 'ek-msg ' + (role === 'user' ? 'user' : 'bot');
+      var b = document.createElement('div');
+      b.className = 'ek-bubble';
+      if (role === 'user') b.textContent = text; else renderRich(b, text);
+      wrap.appendChild(b);
+      if (meta) {
+        if (meta.lead && (meta.lead.new || meta.lead.updated || !meta.lead.saved)) {
+          var badge = document.createElement('div');
+          if (meta.lead.saved) {
+            badge.className = 'ek-badge';
+            badge.textContent = meta.lead.updated ? 'заявка обновлена' : 'заявка сохранена';
+          } else {
+            badge.className = 'ek-badge warn';
+            badge.textContent = 'заявка отклонена: ' + (meta.lead.rejected || 'ошибка');
+          }
+          wrap.appendChild(badge);
+        }
+        if (meta.info) {
+          var mi = document.createElement('div');
+          mi.className = 'ek-meta';
+          mi.textContent = meta.info;
+          wrap.appendChild(mi);
+        }
+      }
+      logEl.appendChild(wrap);
+      scrollDown();
+      return wrap;
+    }
+
+    function showTyping() {
+      var wrap = document.createElement('div');
+      wrap.className = 'ek-msg bot';
+      var b = document.createElement('div');
+      b.className = 'ek-bubble';
+      var t = document.createElement('span');
+      t.className = 'ek-typing';
+      var dots = document.createElement('span');
+      dots.className = 'ek-dots';
+      for (var i = 0; i < 3; i++) dots.appendChild(document.createElement('i'));
+      t.appendChild(dots);
+      t.appendChild(document.createTextNode('печатает…'));
+      b.appendChild(t);
+      wrap.appendChild(b);
+      logEl.appendChild(wrap);
+      scrollDown();
+      return wrap;
+    }
+
+    function renderChips(show) {
+      chips.textContent = '';
+      if (!show) return;
+      SUGGESTIONS.forEach(function (s) {
+        var c = document.createElement('button');
+        c.type = 'button';
+        c.className = 'ek-chip';
+        c.textContent = s;
+        c.addEventListener('click', function () { send(s); });
+        chips.appendChild(c);
+      });
+    }
+
+    function resetView() {
+      logEl.textContent = '';
+      addMessage('bot', GREETING);
+      renderChips(true);
+    }
+
+    function metaInfo(meta) {
+      if (!state.testMode || !meta) return '';
+      var parts = [];
+      if (meta.ms != null) parts.push((meta.ms / 1000).toFixed(1) + ' с');
+      if (meta.promptTokens != null) parts.push(meta.promptTokens + ' + ' + meta.completionTokens + ' ток.');
+      if (meta.cost != null) parts.push('$' + meta.cost.toFixed(5));
+      if (meta.fallback) parts.push(meta.limited ? 'лимит: ' + meta.limited : 'запасной ответ');
+      parts.push(meta.model);
+      return parts.join(' · ');
+    }
+
+    function autosize() {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+      input.style.overflowY = input.scrollHeight > 120 ? 'auto' : 'hidden';
+      var n = input.value.length;
+      count.textContent = n > state.maxChars * 0.8 ? n + ' / ' + state.maxChars : '';
+      sendBtn.disabled = state.busy || !input.value.trim();
+    }
+
+    function send(text) {
+      text = String(text || '').trim();
+      if (!text || state.busy) return;
+      if (text.length > state.maxChars) text = text.slice(0, state.maxChars);
+      state.busy = true;
+      renderChips(false);
+      addMessage('user', text);
+      input.value = '';
+      autosize();
+      var typing = showTyping();
+      var body = { sessionId: state.sessionId, message: text };
+      if (state.testMode && modelSel.value) body.model = modelSel.value;
+
+      fetch(api + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          typing.remove();
+          if (!res.ok) {
+            addMessage('bot', res.j && res.j.message ? res.j.message : OFFLINE);
+            return;
+          }
+          if (res.j.sessionId) { state.sessionId = res.j.sessionId; storage.set(STORE_SID, state.sessionId); }
+          addMessage('bot', res.j.reply, { lead: state.testMode ? res.j.lead : null, info: metaInfo(res.j.meta) });
+        })
+        .catch(function () { typing.remove(); addMessage('bot', OFFLINE); })
+        .then(function () { state.busy = false; autosize(); input.focus(); });
+    }
+
+    // ---- «Перезвоните мне»: телефон с маской, заявка без участия модели ----
+    var leadForm = $('leadform'), leadPhone = $('leadphone'), leadName = $('leadname'), leadErr = $('leaderror'), leadBtn = $('leadsubmit'), actions = $('actions');
+    // Цифры номера после +7. Префикс «+7» маски отбрасываем; полный номер с 8/7 (11 цифр) — тоже.
+    function phoneDigits(v) {
+      var s = String(v).trim();
+      if (s.indexOf('+7') === 0) s = s.slice(2);
+      var d = s.replace(/\D/g, '');
+      if (d.length >= 11 && (d[0] === '8' || d[0] === '7')) d = d.slice(1);
+      return d.slice(0, 10);
+    }
+    function formatPhone(d) {
+      if (!d) return '';
+      var s = '+7 (' + d.slice(0, 3);
+      if (d.length >= 3) s += ') ' + d.slice(3, 6);
+      if (d.length >= 6) s += '-' + d.slice(6, 8);
+      if (d.length >= 8) s += '-' + d.slice(8, 10);
+      return s;
+    }
+    leadPhone.addEventListener('input', function () {
+      var d = phoneDigits(leadPhone.value);
+      // Первая набранная «8» или «7» — это код страны, а не часть номера.
+      if (d.length === 1 && (d === '8' || d === '7') && leadPhone.value.indexOf('+7') !== 0) d = '';
+      leadPhone.value = d ? formatPhone(d) : '+7 (';
+      leadErr.textContent = '';
+    });
+    $('callback').addEventListener('click', function () {
+      leadForm.hidden = false;
+      actions.hidden = true;
+      (leadName.value ? leadPhone : leadName).focus();
+      scrollDown();
+    });
+    $('leadclose').addEventListener('click', function () { leadForm.hidden = true; actions.hidden = false; });
+    leadForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var d = phoneDigits(leadPhone.value);
+      if (d.length !== 10 || !/^[3489]/.test(d)) { leadErr.textContent = 'Проверьте номер: нужен российский номер из 10 цифр после +7'; leadPhone.focus(); return; }
+      if (state.busy) return;
+      state.busy = true;
+      leadBtn.disabled = true;
+      var name = leadName.value.trim();
+      renderChips(false);
+      addMessage('user', 'Оставляю контакты: ' + (name ? name + ', ' : '') + formatPhone(d));
+      var typing = showTyping();
+      var body = { sessionId: state.sessionId, phone: '+7' + d, name: name };
+      if (state.testMode && modelSel.value) body.model = modelSel.value;
+      fetch(api + '/api/lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          typing.remove();
+          if (!res.ok) { addMessage('bot', res.j && res.j.message ? res.j.message : OFFLINE); leadForm.hidden = false; return; }
+          if (res.j.sessionId) { state.sessionId = res.j.sessionId; storage.set(STORE_SID, state.sessionId); }
+          addMessage('bot', res.j.reply, { lead: state.testMode ? res.j.lead : null });
+          leadForm.hidden = true;
+        })
+        .catch(function () { typing.remove(); addMessage('bot', OFFLINE); })
+        .then(function () { state.busy = false; leadBtn.disabled = false; autosize(); });
+    });
+
+    form.addEventListener('submit', function (e) { e.preventDefault(); send(input.value); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); }
+    });
+    input.addEventListener('input', autosize);
+    $('new').addEventListener('click', function () {
+      if (state.busy) return;
+      state.sessionId = '';
+      storage.del(STORE_SID);
+      leadForm.hidden = true;
+      actions.hidden = false;
+      resetView();
+      input.focus();
+    });
+    modelSel.addEventListener('change', function () { storage.set(STORE_MODEL, modelSel.value); });
+
+    // Настройки сервера: тестовый режим, модели, ссылка на политику.
+    fetch(api + '/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      state.maxChars = cfg.maxMessageChars || 1000;
+      input.maxLength = state.maxChars;
+      var p = $('privacy');
+      try { var pu = new URL(cfg.privacyUrl, window.location.href); if (pu.protocol === 'https:' || pu.protocol === 'http:') p.href = pu.href; } catch (e) { /* заглушка */ }
+      if (cfg.testMode && cfg.models && cfg.models.length) {
+        state.testMode = true;
+        testBar.hidden = false;
+        var saved = storage.get(STORE_MODEL);
+        cfg.models.forEach(function (m) {
+          var o = document.createElement('option');
+          o.value = m;
+          o.textContent = m + (m === cfg.defaultModel ? ' (по умолчанию)' : '');
+          modelSel.appendChild(o);
+        });
+        modelSel.value = saved && cfg.models.indexOf(saved) !== -1 ? saved : cfg.defaultModel;
+      }
+    }).catch(function () { /* сервер недоступен — сработает при отправке */ });
+
+    // Восстановить диалог после перезагрузки страницы.
+    resetView();
+    if (state.sessionId) {
+      fetch(api + '/api/history?sessionId=' + encodeURIComponent(state.sessionId))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j.messages || !j.messages.length) return;
+          renderChips(false);
+          j.messages.forEach(function (m) { addMessage(m.role, m.content); });
+        }).catch(function () { /* пусто */ });
+    }
+    autosize();
+    return { send: send };
+  }
+
+  window.ExpertChat = { mount: mount };
+  mount(document.getElementById('ek-chat'), { apiBase: apiBaseFromUrl() || window.EK_API || '' });
+})();
+</script>
+</body>
+</html>
