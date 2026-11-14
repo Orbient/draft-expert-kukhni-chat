@@ -132,6 +132,15 @@
   .ek-consent { margin: 0; padding: 2px 16px 10px; font-size: 12px; color: var(--ek-muted); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
   .ek-consent a { color: inherit; }
   .ek-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ek-demo { padding: 8px 14px; background: #fbeee2; color: var(--ek-warn); font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--ek-line); }
+  .ek-slow { margin-top: 6px; font-size: 13px; color: var(--ek-muted); white-space: normal; }
+  .ek-ok { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; line-height: 1.4; color: var(--ek-muted); }
+  .ek-ok input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--ek-accent); }
+  .ek-ok a { color: inherit; }
+  .ek-lead input[aria-invalid="true"] { border-color: var(--ek-warn); }
+  .ek-lead-error:empty { display: none; }
+  .ek-actions { justify-content: flex-start; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .ek-consent { padding-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -141,25 +150,21 @@
     <div class="ek-title"><b>Консультант Expert Кухни</b><span>Шоурум в ТК «СДМ» · ежедневно 9:30–18:00</span></div>
     <button class="ek-new" type="button" data-ek="new" aria-label="Новый диалог" title="Новый диалог"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Новый диалог</span></button>
   </div>
+  <div class="ek-demo" data-ek="demo" hidden>Демо: не пишите реальный телефон.</div>
   <div class="ek-test" data-ek="test" hidden>
     <label for="ek-model">Модель</label>
     <select id="ek-model" data-ek="model"></select>
   </div>
   <div class="ek-log" data-ek="log" role="log" aria-live="polite"></div>
   <div class="ek-chips" data-ek="chips"></div>
-  <div class="ek-actions" data-ek="actions">
-    <button class="ek-callback" type="button" data-ek="callback">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-      Перезвоните мне
-    </button>
-  </div>
-  <form class="ek-lead" data-ek="leadform" hidden novalidate>
-    <div class="ek-lead-head"><span>Менеджер перезвонит</span><button class="ek-lead-close" type="button" data-ek="leadclose" aria-label="Закрыть">×</button></div>
+  <form class="ek-lead" data-ek="leadform" hidden novalidate aria-labelledby="ek-lead-title">
+    <div class="ek-lead-head"><span id="ek-lead-title" data-ek="leadtitle">Менеджер перезвонит</span><button class="ek-lead-close" type="button" data-ek="leadclose" aria-label="Закрыть форму">×</button></div>
     <label class="ek-sr" for="ek-lead-name">Имя</label>
     <input id="ek-lead-name" data-ek="leadname" type="text" maxlength="60" placeholder="Как к Вам обращаться" autocomplete="given-name">
     <label class="ek-sr" for="ek-lead-phone">Телефон</label>
-    <input id="ek-lead-phone" data-ek="leadphone" type="tel" inputmode="tel" placeholder="+7 (___) ___-__-__" autocomplete="tel">
-    <div class="ek-lead-error" data-ek="leaderror" role="alert"></div>
+    <input id="ek-lead-phone" data-ek="leadphone" type="tel" inputmode="tel" placeholder="+7 (___) ___-__-__" autocomplete="tel" aria-describedby="ek-lead-error">
+    <label class="ek-ok"><input type="checkbox" data-ek="leadok" aria-describedby="ek-lead-error"><span>Согласен(на) на <a data-ek="consent" href="#" target="_blank" rel="noopener noreferrer">обработку персональных данных</a> для обратного звонка</span></label>
+    <div class="ek-lead-error" id="ek-lead-error" data-ek="leaderror" aria-live="assertive"></div>
     <button class="ek-lead-submit" type="submit" data-ek="leadsubmit">Жду звонка</button>
   </form>
   <form class="ek-form" data-ek="form">
@@ -170,7 +175,14 @@
     </button>
   </form>
   <div class="ek-count" data-ek="count"></div>
-  <p class="ek-consent">Отправляя сообщение, вы соглашаетесь с <a data-ek="privacy" href="#" target="_blank" rel="noopener noreferrer">политикой обработки персональных данных</a></p>
+  <!-- Та же строка, что в окне сайта (site/src/data/assistant.ts, consent): телефон в тексте согласием не считается (PD-05). -->
+  <p class="ek-consent">Не пишите в чат телефон и другие личные данные — чтобы связаться с менеджером, нажмите кнопку ниже. <a data-ek="privacy" href="#" target="_blank" rel="noopener noreferrer">Политика конфиденциальности</a></p>
+  <div class="ek-actions" data-ek="actions">
+    <button class="ek-callback" type="button" data-ek="callback">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Перезвоните мне
+    </button>
+  </div>
 </div>
 
 <script>
@@ -179,6 +191,8 @@
  * без переделки обернуть в плавающий виджет (кнопка в углу + это окно).
  * Текст модели выводится только через textContent; ссылки и телефоны —
  * через createElement с проверкой адреса.
+ * Договор с сервером — checks/audit-2026-11-14/CONTRACT.md: телефон из текста заявкой не становится,
+ * сервер присылает leadOffer, окно показывает форму с галочкой согласия; /api/lead — только с consent.
  */
 (function () {
   'use strict';
@@ -186,35 +200,62 @@
   var GREETING = 'Доброго времени суток! Я консультант Expert Кухни. Подскажу по ценам, материалам и срокам, запишу на бесплатный расчёт и 3D-проект в шоуруме. Чем могу помочь?';
   var SUGGESTIONS = ['Сколько стоит кухня?', 'Есть рассрочка?', 'Как записаться на расчёт?', 'Где шоурум?'];
   var OFFLINE = 'Не получается связаться с сервером. Пожалуйста, позвоните или напишите менеджерам: Мария — +7 905 830-57-20, Елена — +7 952 507-13-23 (звонок, MAX, WhatsApp).';
+  var SLOW = 'Отвечаю чуть дольше обычного. Если срочно — позвоните +7 905 830-57-20.';
+  var CALLBACK = 'Перезвоните мне';
+  var CONSENT_VERSION = 'chat-consent-2026-11-14';
+  var TIMEOUT = 45000, SLOW_MS = 9000, DAY = 864e5;
   var STORE_SID = 'ek_chat_session';
   var STORE_MODEL = 'ek_chat_model';
+  // Куда окну можно слать переписку (?api=): свой сервер, боевой адрес, демо и локальная проверка (SEC-07).
+  var API_ALLOW = ['https://ai.kuhniexpert74.ru', 'https://n8n.orbient.pro'];
 
   var storage = {
     get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* приватный режим */ } },
     del: function (k) { try { window.localStorage.removeItem(k); } catch (e) { /* приватный режим */ } }
   };
+  // Сессия: { sid, ts — последнее сообщение, t0 — начало }. Старше суток — новый диалог, ключу не больше 30 дней (PD-10).
+  function readSid() {
+    try {
+      var o = JSON.parse(storage.get(STORE_SID) || '');
+      var now = Date.now();
+      if (o && o.sid && typeof o.ts === 'number' && now - o.ts < DAY && now - (o.t0 || o.ts) < 30 * DAY) return o;
+    } catch (e) { /* старый формат */ }
+    storage.del(STORE_SID);
+    return null;
+  }
+  function saveSid(id) {
+    var prev = readSid(), now = Date.now();
+    storage.set(STORE_SID, JSON.stringify({ sid: id, ts: now, t0: prev && prev.sid === id ? (prev.t0 || now) : now }));
+  }
 
-  // Ссылки, vk.me и телефоны → безопасные <a>; остальное — текстовые узлы.
-  var LINK_RE = /(https?:\/\/[^\s<>"«»]+|vk\.me\/[A-Za-z0-9_.]+|(?:\+7|8)[\s \-(]*\d{3}[\s \-)]*\d{3}[\s \-]*\d{2}[\s \-]*\d{2})/g;
+  var site = { url: '' };
+  // Ссылки, vk.me, телефоны и пути сайта вида /kalkulyator/ → безопасные <a>; остальное — текстовые узлы.
+  // Путь сайта — ссылка на PUBLIC_SITE_URL (siteUrl из /api/config), без него — текстом (CONTRACT.md § 7).
+  var LINK_RE = /(https?:\/\/[^\s<>"«»]+|vk\.me\/[A-Za-z0-9_.]+|(?:^|[\s(«])\/(?:[a-z0-9-]+\/)+|(?:\+7|8)[\s \-(]*\d{3}[\s \-)]*\d{3}[\s \-]*\d{2}[\s \-]*\d{2})/g;
   function renderRich(el, text) {
     el.textContent = '';
     var last = 0, m;
     LINK_RE.lastIndex = 0;
     while ((m = LINK_RE.exec(text))) {
       var token = m[0];
+      var start = m.index;
       var trail = '';
+      var lead = token.match(/^[\s(«]/);
+      if (lead && token.charAt(1) === '/') { token = token.slice(1); start += 1; }
       if (/^https?:|^vk\.me/.test(token)) {
         var t = token.match(/[.,;:!?)»]+$/);
         if (t) { trail = t[0]; token = token.slice(0, -trail.length); }
       }
-      if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      if (start > last) el.appendChild(document.createTextNode(text.slice(last, start)));
       var a = document.createElement('a');
       var href = null;
       if (/^https?:\/\//.test(token)) {
         try { var u = new URL(token); if (u.protocol === 'https:' || u.protocol === 'http:') href = u.href; } catch (e) { href = null; }
       } else if (/^vk\.me\//.test(token)) {
         href = 'https://' + token;
+      } else if (token.charAt(0) === '/') {
+        href = site.url ? site.url + token : null;
       } else {
         var digits = token.replace(/\D/g, '');
         if (digits.length === 11) href = 'tel:+7' + digits.slice(1);
@@ -238,9 +279,19 @@
       var p = new URLSearchParams(window.location.search).get('api');
       if (!p) return '';
       var u = new URL(p);
-      if (u.protocol !== 'https:' && u.hostname !== 'localhost' && u.hostname !== '127.0.0.1') return '';
+      var local = u.protocol === 'http:' && (u.hostname === 'localhost' || u.hostname === '127.0.0.1');
+      if (!local && !(u.protocol === 'https:' && (u.origin === window.location.origin || API_ALLOW.indexOf(u.origin) !== -1))) return '';
       return u.origin + u.pathname.replace(/\/+$/, '');
     } catch (e) { return ''; }
+  }
+
+  // fetch с прерыванием через 45 с (CONTRACT.md § 6); outer — внешний AbortController («Новый диалог»).
+  function post(url, body, outer) {
+    var c = outer || new AbortController();
+    var kill = setTimeout(function () { c.abort(); }, TIMEOUT);
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: c.signal })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, status: r.status, j: j || {} }; }); })
+      .then(function (res) { clearTimeout(kill); return res; }, function (e) { clearTimeout(kill); throw e; });
   }
 
   function mount(root, options) {
@@ -248,7 +299,9 @@
     var $ = function (n) { return root.querySelector('[data-ek="' + n + '"]'); };
     var logEl = $('log'), chips = $('chips'), form = $('form'), input = $('input'), sendBtn = $('send');
     var modelSel = $('model'), testBar = $('test'), count = $('count');
-    var state = { sessionId: storage.get(STORE_SID) || '', busy: false, testMode: false, maxChars: 1000 };
+    var saved = readSid();
+    var state = { sessionId: saved ? saved.sid : '', busy: false, testMode: false, maxChars: 1000, gen: 0, ctrl: null };
+    if (options && options.demo) $('demo').hidden = false;
 
     function scrollDown() { logEl.scrollTop = logEl.scrollHeight; }
 
@@ -290,8 +343,10 @@
       b.className = 'ek-bubble';
       var t = document.createElement('span');
       t.className = 'ek-typing';
+      t.setAttribute('role', 'status');
       var dots = document.createElement('span');
       dots.className = 'ek-dots';
+      dots.setAttribute('aria-hidden', 'true');
       for (var i = 0; i < 3; i++) dots.appendChild(document.createElement('i'));
       t.appendChild(dots);
       t.appendChild(document.createTextNode('печатает…'));
@@ -299,18 +354,27 @@
       wrap.appendChild(b);
       logEl.appendChild(wrap);
       scrollDown();
-      return wrap;
+      // Через 9 с под «печатает» — строка с телефоном.
+      var slow = setTimeout(function () {
+        var p = document.createElement('div');
+        p.className = 'ek-slow';
+        renderRich(p, SLOW);
+        b.appendChild(p);
+        scrollDown();
+      }, SLOW_MS);
+      return { remove: function () { clearTimeout(slow); wrap.remove(); } };
     }
 
-    function renderChips(show) {
+    // Подсказки: стартовые и от сервера (suggest, CONTRACT.md § 4). «Перезвоните мне» открывает форму.
+    function renderChips(list) {
       chips.textContent = '';
-      if (!show) return;
-      SUGGESTIONS.forEach(function (s) {
+      (list || []).forEach(function (s) {
+        if (typeof s !== 'string' || !s) return;
         var c = document.createElement('button');
         c.type = 'button';
         c.className = 'ek-chip';
         c.textContent = s;
-        c.addEventListener('click', function () { send(s); });
+        c.addEventListener('click', function () { if (s === CALLBACK) openLead('form'); else send(s); });
         chips.appendChild(c);
       });
     }
@@ -318,7 +382,7 @@
     function resetView() {
       logEl.textContent = '';
       addMessage('bot', GREETING);
-      renderChips(true);
+      renderChips(SUGGESTIONS);
     }
 
     function metaInfo(meta) {
@@ -346,31 +410,43 @@
       if (!text || state.busy) return;
       if (text.length > state.maxChars) text = text.slice(0, state.maxChars);
       state.busy = true;
-      renderChips(false);
+      logEl.setAttribute('aria-busy', 'true');
+      renderChips(null);
       addMessage('user', text);
       input.value = '';
       autosize();
       var typing = showTyping();
+      var my = state.gen;
       var body = { sessionId: state.sessionId, message: text };
       if (state.testMode && modelSel.value) body.model = modelSel.value;
+      state.ctrl = new AbortController();
 
-      fetch(api + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      post(api + '/api/chat', body, state.ctrl)
         .then(function (res) {
+          if (my !== state.gen) return;
           typing.remove();
-          if (!res.ok) {
-            addMessage('bot', res.j && res.j.message ? res.j.message : OFFLINE);
-            return;
-          }
-          if (res.j.sessionId) { state.sessionId = res.j.sessionId; storage.set(STORE_SID, state.sessionId); }
+          // Любая ошибка (429, 5xx, пустой ответ) — свой текст с телефонами (CONTRACT.md § 6).
+          if (!res.ok || !res.j.reply) { addMessage('bot', OFFLINE); return; }
+          if (res.j.sessionId) state.sessionId = res.j.sessionId;
+          if (state.sessionId) saveSid(state.sessionId);
           addMessage('bot', res.j.reply, { lead: state.testMode ? res.j.lead : null, info: metaInfo(res.j.meta) });
+          if (res.j.leadOffer && res.j.leadOffer.phone) openLead('offer', res.j.leadOffer.phone);
+          else renderChips(Array.isArray(res.j.suggest) ? res.j.suggest.slice(0, 3) : null);
         })
-        .catch(function () { typing.remove(); addMessage('bot', OFFLINE); })
-        .then(function () { state.busy = false; autosize(); input.focus(); });
+        .catch(function () { if (my === state.gen) { typing.remove(); addMessage('bot', OFFLINE); } })
+        .then(function () {
+          if (my !== state.gen) return;
+          state.busy = false;
+          state.ctrl = null;
+          logEl.removeAttribute('aria-busy');
+          autosize();
+          input.focus();
+        });
     }
 
-    // ---- «Перезвоните мне»: телефон с маской, заявка без участия модели ----
-    var leadForm = $('leadform'), leadPhone = $('leadphone'), leadName = $('leadname'), leadErr = $('leaderror'), leadBtn = $('leadsubmit'), actions = $('actions');
+    // ---- «Перезвоните мне»: телефон с маской и отдельной галочкой согласия; без галочки не уходит (PD-02, PD-05) ----
+    var leadForm = $('leadform'), leadPhone = $('leadphone'), leadName = $('leadname'), leadOk = $('leadok'), leadErr = $('leaderror'), leadBtn = $('leadsubmit'), leadTitle = $('leadtitle'), actions = $('actions');
+    var leadSource = 'form', leadBusy = false;
     // Цифры номера после +7. Префикс «+7» маски отбрасываем; полный номер с 8/7 (11 цифр) — тоже.
     function phoneDigits(v) {
       var s = String(v).trim();
@@ -387,44 +463,59 @@
       if (d.length >= 8) s += '-' + d.slice(8, 10);
       return s;
     }
+    function clearErr() { leadErr.textContent = ''; leadPhone.removeAttribute('aria-invalid'); leadOk.removeAttribute('aria-invalid'); }
+    function fieldErr(el, msg) { leadErr.textContent = msg; el.setAttribute('aria-invalid', 'true'); el.focus(); }
+    function closeLead() { leadForm.hidden = true; actions.hidden = false; }
+    function resetLead() { leadForm.reset(); clearErr(); closeLead(); }
+    function openLead(source, phone) {
+      leadSource = source;
+      leadTitle.textContent = source === 'offer' ? 'Перезвоним на этот номер?' : 'Менеджер перезвонит';
+      if (phone) { leadPhone.value = formatPhone(phoneDigits(phone)); leadOk.checked = false; }
+      clearErr();
+      renderChips(null);
+      leadForm.hidden = false;
+      actions.hidden = true;
+      if (source === 'form') (leadName.value ? (leadPhone.value ? leadOk : leadPhone) : leadName).focus();
+      leadForm.scrollIntoView({ block: 'nearest' });
+      scrollDown();
+    }
     leadPhone.addEventListener('input', function () {
       var d = phoneDigits(leadPhone.value);
       // Первая набранная «8» или «7» — это код страны, а не часть номера.
       if (d.length === 1 && (d === '8' || d === '7') && leadPhone.value.indexOf('+7') !== 0) d = '';
       leadPhone.value = d ? formatPhone(d) : '+7 (';
-      leadErr.textContent = '';
+      clearErr();
     });
-    $('callback').addEventListener('click', function () {
-      leadForm.hidden = false;
-      actions.hidden = true;
-      (leadName.value ? leadPhone : leadName).focus();
-      scrollDown();
-    });
-    $('leadclose').addEventListener('click', function () { leadForm.hidden = true; actions.hidden = false; });
+    leadOk.addEventListener('change', clearErr);
+    $('callback').addEventListener('click', function () { openLead('form'); });
+    $('leadclose').addEventListener('click', closeLead);
     leadForm.addEventListener('submit', function (e) {
       e.preventDefault();
       var d = phoneDigits(leadPhone.value);
-      if (d.length !== 10 || !/^[3489]/.test(d)) { leadErr.textContent = 'Проверьте номер: нужен российский номер из 10 цифр после +7'; leadPhone.focus(); return; }
-      if (state.busy) return;
-      state.busy = true;
+      if (d.length !== 10 || !/^[3489]/.test(d)) { fieldErr(leadPhone, 'Проверьте номер: нужен российский номер из 10 цифр после +7'); return; }
+      if (!leadOk.checked) { fieldErr(leadOk, 'Отметьте согласие на обработку персональных данных'); return; }
+      // Свой флаг занятости: форма работает и пока чат ждёт ответа.
+      if (leadBusy) return;
+      leadBusy = true;
       leadBtn.disabled = true;
+      var my = state.gen;
       var name = leadName.value.trim();
-      renderChips(false);
-      addMessage('user', 'Оставляю контакты: ' + (name ? name + ', ' : '') + formatPhone(d));
-      var typing = showTyping();
-      var body = { sessionId: state.sessionId, phone: '+7' + d, name: name };
+      var body = { sessionId: state.sessionId, phone: '+7' + d, name: name, consent: true, consentVersion: CONSENT_VERSION, source: leadSource };
       if (state.testMode && modelSel.value) body.model = modelSel.value;
-      fetch(api + '/api/lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      post(api + '/api/lead', body)
         .then(function (res) {
-          typing.remove();
-          if (!res.ok) { addMessage('bot', res.j && res.j.message ? res.j.message : OFFLINE); leadForm.hidden = false; return; }
-          if (res.j.sessionId) { state.sessionId = res.j.sessionId; storage.set(STORE_SID, state.sessionId); }
-          addMessage('bot', res.j.reply, { lead: state.testMode ? res.j.lead : null });
-          leadForm.hidden = true;
+          if (my !== state.gen) return;
+          if (res.status === 400 && res.j.error === 'consent_required') { fieldErr(leadOk, 'Отметьте согласие на обработку персональных данных'); return; }
+          if (res.status === 400 && res.j.error === 'bad_phone') { fieldErr(leadPhone, res.j.message || 'Проверьте номер'); return; }
+          if (!res.ok) { addMessage('bot', OFFLINE); return; }
+          if (res.j.sessionId) state.sessionId = res.j.sessionId;
+          if (state.sessionId) saveSid(state.sessionId);
+          addMessage('user', 'Оставляю контакты: ' + (name ? name + ', ' : '') + formatPhone(d));
+          addMessage('bot', res.j.reply || 'Спасибо! Менеджер перезвонит в рабочее время.', { lead: state.testMode ? res.j.lead : null });
+          resetLead();
         })
-        .catch(function () { typing.remove(); addMessage('bot', OFFLINE); })
-        .then(function () { state.busy = false; leadBtn.disabled = false; autosize(); });
+        .catch(function () { if (my === state.gen) addMessage('bot', OFFLINE); })
+        .then(function () { leadBusy = false; leadBtn.disabled = false; });
     });
 
     form.addEventListener('submit', function (e) { e.preventDefault(); send(input.value); });
@@ -432,23 +523,36 @@
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); }
     });
     input.addEventListener('input', autosize);
+    // «Новый диалог» во время ожидания прерывает запрос: ответ старого диалога уже не появится.
     $('new').addEventListener('click', function () {
-      if (state.busy) return;
+      state.gen++;
+      if (state.ctrl) state.ctrl.abort();
+      state.ctrl = null;
+      state.busy = false;
+      logEl.removeAttribute('aria-busy');
       state.sessionId = '';
       storage.del(STORE_SID);
-      leadForm.hidden = true;
-      actions.hidden = false;
+      resetLead();
       resetView();
+      autosize();
       input.focus();
     });
     modelSel.addEventListener('change', function () { storage.set(STORE_MODEL, modelSel.value); });
 
-    // Настройки сервера: тестовый режим, модели, ссылка на политику.
+    // Настройки сервера: тестовый режим, модели, ссылки на политику, согласие и сайт (siteUrl, consentUrl — CONTRACT.md § 7).
+    function safeUrl(v) {
+      try { var u = new URL(v, window.location.href); return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : ''; } catch (e) { return ''; }
+    }
     fetch(api + '/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
       state.maxChars = cfg.maxMessageChars || 1000;
       input.maxLength = state.maxChars;
-      var p = $('privacy');
-      try { var pu = new URL(cfg.privacyUrl, window.location.href); if (pu.protocol === 'https:' || pu.protocol === 'http:') p.href = pu.href; } catch (e) { /* заглушка */ }
+      var privacy = cfg.privacyUrl ? safeUrl(cfg.privacyUrl) : '';
+      if (privacy) $('privacy').href = privacy;
+      site.url = cfg.siteUrl ? safeUrl(cfg.siteUrl).replace(/\/+$/, '') : '';
+      var consent = (cfg.consentUrl && safeUrl(cfg.consentUrl)) ||
+        (privacy && /\/privacy\/?$/.test(privacy) ? privacy.replace(/privacy\/?$/, 'consent/') : '') ||
+        (site.url ? site.url + '/consent/' : '');
+      if (consent) $('consent').href = consent;
       if (cfg.testMode && cfg.models && cfg.models.length) {
         state.testMode = true;
         testBar.hidden = false;
@@ -463,14 +567,14 @@
       }
     }).catch(function () { /* сервер недоступен — сработает при отправке */ });
 
-    // Восстановить диалог после перезагрузки страницы.
+    // Восстановить диалог после перезагрузки страницы (не старше суток).
     resetView();
     if (state.sessionId) {
       fetch(api + '/api/history?sessionId=' + encodeURIComponent(state.sessionId))
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (!j.messages || !j.messages.length) return;
-          renderChips(false);
+          renderChips(null);
           j.messages.forEach(function (m) { addMessage(m.role, m.content); });
         }).catch(function () { /* пусто */ });
     }
@@ -479,7 +583,7 @@
   }
 
   window.ExpertChat = { mount: mount };
-  mount(document.getElementById('ek-chat'), { apiBase: apiBaseFromUrl() || window.EK_API || '' });
+  mount(document.getElementById('ek-chat'), { apiBase: apiBaseFromUrl() || window.EK_API || '', demo: true });
 })();
 </script>
 </body>
