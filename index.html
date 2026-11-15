@@ -431,6 +431,7 @@
           if (state.sessionId) saveSid(state.sessionId);
           addMessage('bot', res.j.reply, { lead: state.testMode ? res.j.lead : null, info: metaInfo(res.j.meta) });
           if (res.j.leadOffer && res.j.leadOffer.phone) openLead('offer', res.j.leadOffer.phone);
+          else if (res.j.visitForm && leadForm.hidden && !visitShown) { visitShown = true; openLead('visit'); }
           else renderChips(Array.isArray(res.j.suggest) ? res.j.suggest.slice(0, 3) : null);
         })
         .catch(function () { if (my === state.gen) { typing.remove(); addMessage('bot', OFFLINE); } })
@@ -446,7 +447,7 @@
 
     // ---- «Перезвоните мне»: телефон с маской и отдельной галочкой согласия; без галочки не уходит (PD-02, PD-05) ----
     var leadForm = $('leadform'), leadPhone = $('leadphone'), leadName = $('leadname'), leadOk = $('leadok'), leadErr = $('leaderror'), leadBtn = $('leadsubmit'), leadTitle = $('leadtitle'), actions = $('actions');
-    var leadSource = 'form', leadBusy = false;
+    var leadSource = 'form', leadBusy = false, visitShown = false; // форма записи в шоурум — сама, один раз за диалог
     // Цифры номера после +7. Префикс «+7» маски отбрасываем; полный номер с 8/7 (11 цифр) — тоже.
     function phoneDigits(v) {
       var s = String(v).trim();
@@ -468,8 +469,8 @@
     function closeLead() { leadForm.hidden = true; actions.hidden = false; }
     function resetLead() { leadForm.reset(); clearErr(); closeLead(); }
     function openLead(source, phone) {
-      leadSource = source;
-      leadTitle.textContent = source === 'offer' ? 'Перезвоним на этот номер?' : 'Менеджер перезвонит';
+      leadSource = source === 'offer' ? 'offer' : 'form';
+      leadTitle.textContent = source === 'offer' ? 'Перезвоним на этот номер?' : source === 'visit' ? 'Запишем в шоурум: менеджер позвонит и согласует время' : 'Менеджер перезвонит';
       if (phone) { leadPhone.value = formatPhone(phoneDigits(phone)); leadOk.checked = false; }
       clearErr();
       renderChips(null);
@@ -526,6 +527,7 @@
     // «Новый диалог» во время ожидания прерывает запрос: ответ старого диалога уже не появится.
     $('new').addEventListener('click', function () {
       state.gen++;
+      visitShown = false;
       if (state.ctrl) state.ctrl.abort();
       state.ctrl = null;
       state.busy = false;
